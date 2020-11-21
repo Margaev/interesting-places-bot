@@ -45,11 +45,6 @@ def make_place_message(suggestions_index, tg_user, chat_id, delete_message_id=No
         'inline_keyboard': [[button_previous, button_next], [send_location_button, ]]
     }
 
-    # invoke_telegram('sendPhoto', chat_id=chat_id, photo=photo_url, caption=text, reply_markup=json.dumps(keyboard))
-    #
-    # if delete_message_id is not None:
-    #     invoke_telegram('deleteMessage', chat_id=chat_id, message_id=delete_message_id)
-
     if delete_message_id is None:
         invoke_telegram('sendPhoto', chat_id=chat_id, photo=photo_url, caption=text, reply_markup=json.dumps(keyboard))
     else:
@@ -70,7 +65,6 @@ def make_place_message(suggestions_index, tg_user, chat_id, delete_message_id=No
 
 
 def send_places(chat_id, user_id, x, y):
-    print('sending')
     tg_user, _ = models.TgUser.objects.get_or_create(tg_id=user_id)
     tg_user.current_suggestions = [{'place_id': place.id, 'distance': place.distance.km}
                                    for place in get_nearest_places(x, y)]
