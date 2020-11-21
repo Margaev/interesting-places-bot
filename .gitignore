@@ -1,0 +1,5 @@
+/places/migrations/
+/db.sqlite3
+/media/
+/venv/
+/interesting_places_bot/local_settings.py
