@@ -1,3 +1,6 @@
+import json
+
+
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
 
@@ -11,17 +14,66 @@ def get_nearest_places(x, y):
     return res
 
 
-def send_places(chat_id, x, y):
-    places = get_nearest_places(x, y)
+def make_place_message(suggestions_index, tg_user, chat_id, delete_message_id=None):
+    place = models.Place.objects.get(id=tg_user.current_suggestions[suggestions_index]['place_id'])
 
-    text = f'Ближайшие места:'
-    invoke_telegram('sendMessage', chat_id=chat_id, text=text)
+    text = f'{place.name}\n\nОписание:\n{place.description}'
+    photo_url = place.get_photo_url()
+    text += f'\n\nМесто расположено в {round(tg_user.current_suggestions[suggestions_index]["distance"], 2)} км от вас'
 
-    for place in places:
-        text = f'{place.name}\n\nОписание:\n{place.description}'
-        photo_url = place.get_photo_url()
+    previous_suggestion_index = suggestions_index - 1 if suggestions_index != 0 else len(tg_user.current_suggestions) - 1
+    button_previous = {
+        'text': '<-',
+        'callback_data': str({'action': 'previous_place',
+                              'suggestion_index': previous_suggestion_index})
+    }
 
-        text += f'\n\nМесто расположено в {round(place.distance.km, 2)} км от вас'
+    next_suggestion_index = suggestions_index + 1 if suggestions_index != len(tg_user.current_suggestions) - 1 else 0
+    button_next = {
+        'text': '->',
+        'callback_data': str({'action': 'next_place',
+                              'suggestion_index': next_suggestion_index})
+    }
 
-        invoke_telegram('sendPhoto', chat_id=chat_id, photo=photo_url, caption=text)
-        invoke_telegram('sendLocation', chat_id=chat_id, longitude=place.location.x, latitude=place.location.y)
+    send_location_button = {
+        'text': 'Показать местоположение',
+        'callback_data': str({'action': 'send_location',
+                              'place_id': place.id})
+    }
+
+    keyboard = {
+        'inline_keyboard': [[button_previous, button_next], [send_location_button, ]]
+    }
+
+    # invoke_telegram('sendPhoto', chat_id=chat_id, photo=photo_url, caption=text, reply_markup=json.dumps(keyboard))
+    #
+    # if delete_message_id is not None:
+    #     invoke_telegram('deleteMessage', chat_id=chat_id, message_id=delete_message_id)
+
+    if delete_message_id is None:
+        invoke_telegram('sendPhoto', chat_id=chat_id, photo=photo_url, caption=text, reply_markup=json.dumps(keyboard))
+    else:
+        invoke_telegram(
+            'editMessageMedia',
+            chat_id=chat_id,
+            message_id=delete_message_id,
+            media=json.dumps({'type': 'photo', 'media': photo_url})
+        )
+
+        invoke_telegram(
+            'editMessageCaption',
+            chat_id=chat_id,
+            message_id=delete_message_id,
+            caption=text,
+            reply_markup=json.dumps(keyboard)
+        )
+
+
+def send_places(chat_id, user_id, x, y):
+    print('sending')
+    tg_user, _ = models.TgUser.objects.get_or_create(tg_id=user_id)
+    tg_user.current_suggestions = [{'place_id': place.id, 'distance': place.distance.km}
+                                   for place in get_nearest_places(x, y)]
+    tg_user.save()
+
+    make_place_message(0, tg_user, chat_id)
