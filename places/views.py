@@ -19,7 +19,12 @@ def telegram_hook(request):
         if 'text' in update['message']:
             update_text = update['message']['text']
             if '/start' in update_text:
-                models.TgUser.objects.get_or_create(tg_id=user_id)
+                models.TgUser.objects.get_or_create(
+                    tg_id=user_id,
+                    first_name=update['message']['from'].get('first_name'),
+                    last_name=update['message']['from'].get('last_name'),
+                    username=update['message']['from'].get('username')
+                )
 
                 text = 'Привет! Этот бот показывает интересные места по близости к тебе в Санкт-Петербурге.\n' \
                        'Чтобы получить места поблизости, пошли свою геопозицию.'

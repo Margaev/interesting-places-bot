@@ -8,6 +8,9 @@ class TgUser(models.Model):
     tg_id = models.CharField(max_length=63)
     current_suggestions = models.JSONField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
+    first_name = models.CharField(max_length=63, null=True, blank=True)
+    last_name = models.CharField(max_length=63, null=True, blank=True)
+    username = models.CharField(max_length=63, null=True, blank=True)
 
 
 class Place(models.Model):
