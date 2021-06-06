@@ -11,17 +11,19 @@ class TgUser(models.Model):
     first_name = models.CharField(max_length=63, null=True, blank=True)
     last_name = models.CharField(max_length=63, null=True, blank=True)
     username = models.CharField(max_length=63, null=True, blank=True)
+    expecting_input = models.BooleanField(default='False')
 
 
 class Place(models.Model):
     location = gis_models.PointField(spatial_index=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(max_length=511, null=True, blank=True)
     photo = models.ImageField(upload_to='./', null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
+    author = models.ForeignKey(TgUser, on_delete=models.CASCADE, related_name='places', null=True, blank=True)
 
     def get_photo_url(self):
         return f'https://{settings.URL}{self.photo.url}'
 
     def __str__(self):
-        return self.name
+        return self.name or 'None'
