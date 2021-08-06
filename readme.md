@@ -9,20 +9,20 @@
     `$ pip install -r requirements.txt`
 3) Create interesting_places_bot/local_settings.py file and fill it by example:
     ```
-    ALLOWED_HOSTS = ['127.0.0.1', 'your_host']
+    URL = 'your_host'
+    ALLOWED_HOSTS = ['127.0.0.1', URL]
     SECRET_KEY = 'secret_key'
     
     TELEGRAM_BOT_TOKEN = 'your_token'
-    URL = 'your_host'
     
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': 'db_name',
-            'USER': 'username',
-            'PASSWORD': 'password',
-            'HOST': 'db_host',
-            'PORT': 'db_port',
+            'NAME': 'interesting_places',
+            'USER': 'postgres',
+            'PASSWORD': 'postgres',
+            'HOST': '127.0.0.1',
+            'PORT': '5000',
         }
     }
     ```
